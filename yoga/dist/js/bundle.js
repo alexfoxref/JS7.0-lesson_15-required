@@ -107,7 +107,6 @@ function calc() {
     totalValue.innerHTML = 0;
 
     persons.addEventListener('change', function() {
-        this.value = this.value.replace(/[\D]|^0/g, '');
         personsSum = +this.value;
 
         total = (daysSum + personsSum) * 4000;
@@ -174,7 +173,6 @@ function calc() {
     }
 
     restDays.addEventListener('change', function() {
-        this.value = this.value.replace(/[\D]|^0/g, '');
         daysSum = +this.value;
 
         total = (daysSum + personsSum) * 4000;
@@ -199,6 +197,14 @@ function calc() {
             animatedNum(totalStr, totalValue);
 
         }
+    });
+
+    persons.addEventListener('input', function() {
+        this.value = this.value.replace(/[\D]|^0/g, '');
+    });
+    
+    restDays.addEventListener('input', function() {
+        this.value = this.value.replace(/[\D]|^0/g, '');
     });
 }
 
@@ -825,7 +831,7 @@ module.exports = timer;
 window.addEventListener('DOMContentLoaded', () => {
 
     'use strict';
-    
+
     let calc = __webpack_require__(/*! ./parts/calc.js */ "./src/js/parts/calc.js"),
         form = __webpack_require__(/*! ./parts/form.js */ "./src/js/parts/form.js"),
         input = __webpack_require__(/*! ./parts/input.js */ "./src/js/parts/input.js"),
@@ -837,12 +843,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
     calc();
     form();
-    input();
     lightScroll();
     modal();
     slider();
     tabs();
     timer();
+    input();
+
 });
 
 /***/ })

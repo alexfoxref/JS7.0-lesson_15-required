@@ -1,7 +1,7 @@
 window.addEventListener('DOMContentLoaded', () => {
 
     'use strict';
-    
+
     let calc = require('./parts/calc.js'),
         form = require('./parts/form.js'),
         input = require('./parts/input.js'),
@@ -13,10 +13,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
     calc();
     form();
-    input();
     lightScroll();
     modal();
     slider();
     tabs();
     timer();
+    input();
+
 });

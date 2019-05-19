@@ -106,27 +106,52 @@ function calc() {
 
     totalValue.innerHTML = 0;
 
-    persons.addEventListener('change', function() {
-        personsSum = +this.value;
-
-        total = (daysSum + personsSum) * 4000;
-
-        if (restDays.value == '' || persons.value == '') {
-            totalValue.innerHTML = 0;
-        } else {
-            let totalStr = total * place.options[place.selectedIndex].value + '';
-
-            animatedNum(totalStr, totalValue);
+ function getOneNum(str) {
+            return new Promise(resolve => {
+                if (index < str.length) {
+                    if (count <= +str[index]) {
+                        resolve(str);
+                    } else {
+                        index++;
+                        (index < str.length) ? count = 0 : count = ''
+                        resolve(str);
+                    }
+                } else {
+                    index = 0;
+                    count = 0;
+                }
+            })
         }
-    });
 
     // анимация цифр
-
-    function animatedNum(str, element) {
+    let animatedNum = (str, element) => {
         let index = 0,
             count = 0;
 
-        function getNum(str) {
+        let getOneNum = str => {
+            return new Promise(resolve => {
+                if (index < str.length) {
+                    if (count <= +str[index]) {
+                        resolve(str);
+                    } else {
+                        index++;
+                        (index < str.length) ? count = 0 : count = ''
+                        resolve(str);
+                    }
+                } else {
+                    index = 0;
+                    count = 0;
+                }
+            })
+        }
+
+        let waitTimeout = ms => {
+            return new Promise(resolve => {
+                setTimeout(resolve, ms);
+            })
+        }
+
+        let getNum = (str) => {
             getOneNum(str)
                 .then((res) => {
                     if (index == 0) {
@@ -142,69 +167,41 @@ function calc() {
                             getNum(str)
                         })
                 })
-                // .catch((err) => console.log(err))
-        }
-
-        function getOneNum(str) {
-            return new Promise((resolve, reject) => {
-                if (index < str.length) {
-                    if (count <= +str[index]) {
-                        resolve(str);
-                    } else {
-                        index++;
-                        (index < str.length) ? count = 0 : count = ''
-                        resolve(str);
-                    }
-                } else {
-                    // reject('конец числа');
-                    index = 0;
-                    count = 0;
-                }
-            })
-        }
-
-        function waitTimeout(ms) {
-            return new Promise(resolve => {
-                setTimeout(resolve, ms);
-            })
         }
 
         getNum(str);
     }
 
-    restDays.addEventListener('change', function() {
-        daysSum = +this.value;
+    document.body.addEventListener('change', e => {
+        if (e.target && e.target.classList.contains('counter-block-input')) {
+            daysSum = +e.target.value;
 
-        total = (daysSum + personsSum) * 4000;
+            total = (daysSum + personsSum) * 4000;
 
-        if (persons.value == '' || restDays.value == '') {
-            totalValue.innerHTML = 0;
-        } else {
-            let totalStr = total * place.options[place.selectedIndex].value + '';
-            
-            animatedNum(totalStr, totalValue);
-
+            if (persons.value == '' || restDays.value == '') {
+                totalValue.innerHTML = 0;
+            } else {
+                let totalStr = total * place.options[place.selectedIndex].value + '';
+                
+                animatedNum(totalStr, totalValue);
+            }
         }
-    });
-
-    place.addEventListener('change', function() {
-        if (restDays.value == '' || persons.value == '') {
-            totalValue.innerHTML = 0;
-        } else {
-            let a = total,
-                totalStr = a * this.options[this.selectedIndex].value + '';
-
-            animatedNum(totalStr, totalValue);
-
-        }
-    });
-
-    persons.addEventListener('input', function() {
-        this.value = this.value.replace(/[\D]|^0/g, '');
-    });
+        if (e.target && e.target == place) {
+            if (restDays.value == '' || persons.value == '') {
+                totalValue.innerHTML = 0;
+            } else {
+                let a = total,
+                    totalStr = a * e.target.options[e.target.selectedIndex].value + '';
     
-    restDays.addEventListener('input', function() {
-        this.value = this.value.replace(/[\D]|^0/g, '');
+                animatedNum(totalStr, totalValue);
+            }
+        }
+    });
+
+    document.body.addEventListener('input', e => {
+        if (e.target && e.target.classList.contains('counter-block-input')) {
+            e.target.value = e.target.value.replace(/[\D]|^0/g, '');
+        }
     });
 }
 
@@ -229,13 +226,11 @@ function form() {
         statusMessage = document.createElement('div'),
         overlayForm = document.querySelector('.overlay-form'),
         popupFormTitle = document.querySelector('.popup-form-title'),
-        overlay = document.querySelector('.overlay'),
-        popup = document.querySelector('.overlay > *'),
         popupFormStatus = document.querySelector('.popup-form-status');
 
     statusMessage.classList.add('status-img');
 
-    function sendForm(form, input) {
+    let sendForm = (form, input) => {
         //объект стандартных интерпретаций ответа сервера
         let message = {
             loading: 'Загрузка...',
@@ -248,8 +243,8 @@ function form() {
             failureImgBig: `<img src="src/img/delete-button.svg" width="200" height="200" alt="Что-то пошло не так...">`
         };
 
-        form.addEventListener('submit', (event) => {
-            event.preventDefault();
+        form.addEventListener('submit', e => {
+            e.preventDefault();
             //добавляем картинку в форму и удаляем класс анимации всплывающего окна формы
             form.appendChild(statusMessage);
             overlayForm.classList.remove('fade-form');
@@ -262,8 +257,24 @@ function form() {
                 statusMessage.style.left = '54%';
             }
 
+            //загрузка
+            let loadingPost = () => {
+                //класс для условия остановки анимации
+                statusMessage.classList.add('loading');
+                statusMessage.innerHTML = message.loadingImg;
+                //js анимация вращения картинки
+                let count = 0,
+                    loadingAnimation = setInterval(() => {
+                        statusMessage.style.transform = `rotate(${++count}deg)`;
+                        if (!statusMessage.classList.contains('loading')) {
+                            statusMessage.style.transform = `rotate(0deg)`;
+                            clearInterval(loadingAnimation);
+                        }
+                    }, 10);
+            }
+
             //формируем запрос в формате json
-            function postData(data) {
+            let postData = (data) => {
                 return new Promise((resolve, reject) => {
                     let request = new XMLHttpRequest();
 
@@ -276,9 +287,7 @@ function form() {
                     });
                     //слушатель на изменение состояния запроса
                     request.addEventListener('readystatechange', () => {
-                        // так не работает
-                        // if (request.readyState < 4) {
-                        //     resolve('loading')} else 
+        
                         if (request.readyState === 4) {
                             if (request.status == 200) {
                                 resolve('success');
@@ -299,57 +308,48 @@ function form() {
                 obj[key] = value;
             });
             let json = JSON.stringify(obj);
-            
-            //загрузка
-            function loadingPost() {
-                //класс для условия остановки анимации
-                statusMessage.classList.add('loading');
-                statusMessage.innerHTML = message.loadingImg;
-                //js анимация вращения картинки
-                let count = 0,
-                    loadingAnimation = setInterval(() => {
-                        statusMessage.style.transform = `rotate(${++count}deg)`;
-                        if (!statusMessage.classList.contains('loading')) {
-                            statusMessage.style.transform = `rotate(0deg)`;
-                            clearInterval(loadingAnimation);
-                        }
-                    }, 10);
-            }
 
             //функция действий при успехе и при неуспехе
-            function requestEvent(st) {
+            let requestEvent = (st) => {
+                let bindModal = (displayStatus, overlayMethod, popupMethod, overflowStatus) => {
+                    overlayForm.style.display = displayStatus;
+                    overlayForm.classList[overlayMethod]('fade-form');
+                    popupFormStatus[popupMethod](image);
+                    document.body.style.overflow = overflowStatus;
+                }
+
                 //класс для условия остановки анимации
                 statusMessage.classList.remove('loading');
                 //вставляем нужную картинку
                 statusMessage.innerHTML = message[`${st}Img`];
                 //модальное окно с нужной надписью и картинкой
-                overlayForm.style.display = 'block';
-                overlayForm.classList.add('fade-form');
                 popupFormTitle.textContent = message[`${st}`];
                 let image = document.createElement('div');
                 image.innerHTML = message[`${st}ImgBig`];
                 image.classList.add('popup-form-img');
-                popupFormStatus.appendChild(image);
+                bindModal('block', 'add', 'appendChild', 'hidden');
                 //закрываем модальное окно по клику в любое место и убираем обработчик событий
-                function removeListener(event) {
-                    overlayForm.style.display = 'none';
-                    overlayForm.classList.remove('fade-form');
-                    popupFormStatus.removeChild(image);
+                let removeListener = () => {
+                    bindModal('none', 'remove', 'removeChild', '');
                     document.body.removeEventListener('click', removeListener);
+                    if (form.contains(statusMessage)) {
+                        statusMessage.innerHTML = '';
+                        form.removeChild(statusMessage);
+                    }
                 }
 
                 document.body.addEventListener('click', removeListener);
             }
 
             //setTimeout
-            function waitTimeout(ms) {
+            let waitTimeout = (ms) => {
                 return new Promise(resolve => {
                     setTimeout(resolve, ms)
                 })
             }
 
             //окончание запроса
-            function endPost() {
+            let endPost = () => {
                 for (let i = 0; i < input.length; i++) {
                     input[i].value = '';
                     input[i].addEventListener('input', () => {
@@ -362,18 +362,14 @@ function form() {
             }
 
             postData(json)
-                    // так не работает
-                    // .then(() => {
-                    //     loadingPost()
-                    // })
                     .then((succ) => {
                         waitTimeout(1000)
-                            .then(() => {requestEvent('success')})
+                            .then(() => {requestEvent(succ)})
                     })
                     .catch((err) => {
                         waitTimeout(3000)
                             .then(() => {
-                                requestEvent('failure');
+                                requestEvent(err);
                                 console.error('Сервер не отвечает');
                             })
                     })
@@ -385,18 +381,6 @@ function form() {
 
     sendForm(form, input);
     sendForm(contactForm, contactInput);
-
-    // скрываем модальное окно при нажатии в область вне окна
-    overlay.addEventListener('click', (event) => {
-        if (event.target && !popup.contains(event.target)) {
-            
-            //удаляем сообщение блока ajax
-            if (form.contains(statusMessage)) {
-                statusMessage.innerHTML = '';
-                form.removeChild(statusMessage);
-            }
-        }
-    });
 }
 
 module.exports = form;
@@ -415,17 +399,17 @@ module.exports = form;
 function input() {
     let siteInputs = document.querySelectorAll('input[name="phone"]');
 
-    document.addEventListener('input', (event) => {
+    document.body.addEventListener('input', e => {
         siteInputs.forEach((item) => {
-            if (event.target && event.target == item) {
+            if (e.target && e.target == item) {
                 //формируем ввод
                 item.value = '+' + item.value
                     .replace(/[^\d]/g, ``)
                     .replace(/\d{12,}/, `${item.value.replace(/[^\d]/g, ``).slice(0, 11)}`);
                 //удаляем плюс
-                item.addEventListener('keydown', (event) => {
-                    if (event.keyCode == 8 && item.value == '+') {
-                        event.preventDefault();
+                item.addEventListener('keydown', e => {
+                    if (e.keyCode == 8 && item.value == '+') {
+                        e.preventDefault();
                         item.value = '';
                     }
                 });
@@ -460,26 +444,20 @@ module.exports = input;
 // Плавная прокрутка пунктов меню
 
 function lightScroll() {
-    let menuPanel = document.querySelector('ul'),
-        menuItems = document.querySelectorAll('li > a'),
-        overlay = document.querySelector('.overlay');
+    let menuItems = document.querySelectorAll('li > a');
 
-    menuItems.forEach((item) => {
+    menuItems.forEach(item => {
         item.classList.add('menu-item');
     });
 
-    menuPanel.addEventListener('click', (event) => {
-        event.preventDefault();
-        //чтобы прокрутка не работала при открытом модальном окне
-        if (!overlay.classList.contains('activeOverlay')) {
+    document.body.addEventListener('click', e => {
+        if (e.target && e.target.classList.contains('menu-item')) {                
+            e.preventDefault();
 
-            if (event.target && event.target.classList.contains('menu-item')) {                
-                
-                document.querySelector(event.target.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
+            document.querySelector(e.target.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
         }
     });
 }
@@ -498,116 +476,95 @@ module.exports = lightScroll;
 // Модальные окна
 
 function modal() {
-    let more = document.querySelector('.more'),
-        close = document.querySelector('.popup-close'),
-        popup = document.querySelector('.overlay > *'),
-        tabBtns = document.querySelectorAll('.description-btn'),
-        fade = document.querySelectorAll('.fade')[8]
-        overlay = document.querySelector('.overlay');
+    let popup = document.querySelector('.overlay > *'),
+        fade = document.querySelectorAll('.fade')[8],
+        overlay = document.querySelector('.overlay'),
+        isActiveBtn;
 
-    document.body.addEventListener('click', (event) => {
-        for (let i = 0; i < tabBtns.length; i++) {
-            
-            if (event.target && (event.target == more || event.target == tabBtns[i])) {
-                event.preventDefault();
-                //удаляем любую анимацию по-умолчанию
-                more.classList.remove('more-splash');
-                tabBtns[i].classList.remove('more-splash');
-                fade.classList.remove('fade');
+    let bindModal = (displayStatus, overflowStatus, el) => {
+        if (displayStatus == 'block') {isActiveBtn = el};
+        if (!el) {el = isActiveBtn};
 
-                if (/Msie|Edge/i.test(navigator.userAgent)) {
-                    //добавляем css анимацию
-                    more.classList.add('more-splash');
-                    tabBtns[i].classList.add('more-splash');
-                    fade.classList.add('fade');
-                } else if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Kindle|Silk|Opera Mini/i.test(navigator.userAgent)) {
-                    //добавляем js анимацию
-                    //начальное положение
-                    overlay.style.top = '50%';
-                    overlay.style.left = '50%';
-                    overlay.style.width = '0%';
-                    overlay.style.height = '0%';
-                    popup.style.left = '-50%';
-                    
-                    let shadow = 10;
-                    if (event.target == more) {
-                        more.style.boxShadow = `0 0 ${shadow}px #c78030`;
-                    }
-                    if (event.target == tabBtns[i]) {
-                        tabBtns[i].style.boxShadow = `0 0 ${shadow}px #c78030`;
-                    }
+        el.classList.remove('more-splash');
+        overlay.style.display = displayStatus;
+        document.body.style.overflow = overflowStatus;
+    };
 
-                    //js анимация
-                    function overlayAnimation (pos1, pos2, int) {
-                        let id = setInterval(frameOverlay, int);
+    let shadow = 0;
+    let bindHover = (event, hoverWidth) => {
+        document.body.addEventListener(event, e => {
+            if (e.target && (e.target.classList.contains('more') || e.target.classList.contains('description-btn'))) {
+                e.preventDefault();
+                shadow = hoverWidth;
+                e.target.style.boxShadow = `0 0 ${shadow}px #c78030`;
+            }
+        });
+    };
 
-                        function frameOverlay() {
-                            let plus = 1;
+    bindHover('mouseover', 10);
+    bindHover('mouseout', 0);
 
-                            overlay.style.top = `${parseInt(overlay.style.top) - plus}%`;
-                            overlay.style.left = `${parseInt(overlay.style.left) - plus}%`;
-                            overlay.style.width = `${parseInt(overlay.style.width) + 2 * plus}%`;
-                            overlay.style.height = `${parseInt(overlay.style.height) + 2 * plus}%`;
-                            if (event.target == more) {
-                                more.style.boxShadow = `0 0 ${++shadow}px #c78030`;
-                            }
-                            if (event.target == tabBtns[i]) {
-                                tabBtns[i].style.boxShadow = `0 0 ${++shadow}px #c78030`;
-                            }
+    document.body.addEventListener('click', e => {
 
-                            if (parseInt(overlay.style.top) <= pos1) {
-                                clearInterval(id);
+        if (e.target && (e.target.classList.contains('more') || e.target.classList.contains('description-btn'))) {
+            //удаляем любую анимацию по-умолчанию
+            bindModal('block', 'hidden', e.target);
+            fade.classList.remove('fade');
 
-                                id = setInterval(framePopup, int);
+            if (/Msie|Edge/i.test(navigator.userAgent)) {
+                //добавляем css анимацию
+                e.target.classList.add('more-splash');
+                fade.classList.add('fade');
+            } else if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Kindle|Silk|Opera Mini/i.test(navigator.userAgent)) {
+                return
+            } else {
+                //добавляем js анимацию
+                //начальное положение
+                overlay.style.top = '50%';
+                overlay.style.left = '50%';
+                overlay.style.width = '0%';
+                overlay.style.height = '0%';
+                popup.style.left = '-50%';
+                e.target.style.boxShadow = `0 0 ${10 + shadow}px #c78030`;
 
-                                function framePopup() {
-                                    let plus = 1;
+                //js анимация
+                let overlayAnimation = (pos1, pos2, int) => {
+                    let frameOverlay = () => {
+                        let plus = 1;
 
-                                    popup.style.left = `${parseInt(popup.style.left) + 2 * plus}%`;
-                                
-                                    if (parseInt(popup.style.left) >= pos2) {
-                                        clearInterval(id);
-                                        if (event.target == more) {
-                                            shadow = 0;
-                                            more.style.boxShadow = `0 0 ${shadow}px #c78030`;                                        }
-                                        if (event.target == tabBtns[i]) {
-                                            shadow = 0;
-                                            tabBtns[i].style.boxShadow = `0 0 ${shadow}px #c78030`;
-                                        }
-                                    }
+                        overlay.style.top = `${parseInt(overlay.style.top) - plus}%`;
+                        overlay.style.left = `${parseInt(overlay.style.left) - plus}%`;
+                        overlay.style.width = `${parseInt(overlay.style.width) + 2 * plus}%`;
+                        overlay.style.height = `${parseInt(overlay.style.height) + 2 * plus}%`;
+                        e.target.style.boxShadow = `0 0 ${(10 + ++shadow)}px #c78030`;
+
+                        if (parseInt(overlay.style.top) <= pos1) {
+                            clearInterval(id);
+
+                            let framePopup = () => {
+                                let plus = 1;
+
+                                popup.style.left = `${parseInt(popup.style.left) + 2 * plus}%`;
+                            
+                                if (parseInt(popup.style.left) >= pos2) {
+                                    clearInterval(id);
+                                    shadow = 0;
+                                    e.target.style.boxShadow = `0 0 ${shadow}px #c78030`;
                                 }
                             }
+                            id = setInterval(framePopup, int);
                         }
                     }
-
-                    if (event.target == more) {
-                        overlayAnimation(3, 44, 20);
-                    }
-                    if (event.target == tabBtns[i]) {
-                        overlayAnimation(0, 50, 5);
-                        shadow = 10;
-                        tabBtns[i].style.boxShadow = `0 0 ${shadow}px #c78030`;
-                    }
+                    let id = setInterval(frameOverlay, int);
                 }
-
-                overlay.style.display = 'block';
-                document.body.style.overflow = 'hidden';
-                //класс для запрещения прокрутки при открытом модальном окне
-                overlay.classList.add('activeOverlay');
+                overlayAnimation(0, 50, 5);
             }
         }
-    });
 
-    // скрываем при нажатии на крестик
-    close.addEventListener('click', () => {
-        overlay.style.display = 'none';
-        more.classList.remove('more-splash');
-        for (let i = 0; i < tabBtns.length; i++) {
-            tabBtns[i].classList.remove('more-splash');
+        if (e.target && e.target.classList.contains('popup-close')) {
+            bindModal('none', '');
+            popup.querySelector('input').placeholder = 'Ваш телефон';
         }
-        document.body.style.overflow = '';
-        overlay.classList.remove('activeOverlay');
-        popup.querySelector('input').placeholder = 'Ваш телефон';
     });
 }
 
@@ -633,11 +590,7 @@ function slider() {
         dots = document.querySelectorAll('.dot'),
         wrap = document.querySelector('.wrap');
 
-    wrap.style.height = slides[slideIndex - 1].getBoundingClientRect().height;
-
-    showSlides(slideIndex);
-
-    function showSlides(n) {
+    let showSlides = n => {
         if (n > slides.length) {
             slideIndex = 1;
         }
@@ -655,29 +608,29 @@ function slider() {
         dots[slideIndex - 1].classList.add('dot-active');
     }
 
-    function plusSlides(n) {
+    let plusSlides = n => {
         showSlides(slideIndex += n);
     }
 
-    function currentSlide(n) {
+    let currentSlide = n => {
         showSlides(slideIndex = n);
     }
 
-    prev.addEventListener('click', () => {
-        plusSlides(-1);
-    });
-
-    next.addEventListener('click', () => {
-        plusSlides(1);
-    });
-
-    dotsWrap.addEventListener('click', event => {
+    document.body.addEventListener('click', e => {
+        if (e.target && e.target.classList.contains('prev') || e.target.classList.contains('arrow-left')) {
+            plusSlides(-1);
+        };
+        if (e.target && e.target.classList.contains('next') || e.target.classList.contains('arrow-right')) {
+            plusSlides(1);
+        };
         dots.forEach((item, index) => {
-            if (event.target && event.target == item) {
+            if (e.target && e.target == item) {
                 currentSlide(index + 1);
             }
         });
     });
+
+    showSlides(slideIndex);
 }
 
 module.exports = slider;
@@ -698,7 +651,7 @@ function tabs() {
         info = document.querySelector('.info-header'),
         tabContent = document.querySelectorAll('.info-tabcontent');
     
-    function hideTabContent(a) {
+    let hideTabContent = a => {
         for (let i = a; i < tabContent.length; i++) {
             tabContent[i].classList.remove('show');
             tabContent[i].classList.add('hide');
@@ -707,15 +660,15 @@ function tabs() {
     
     hideTabContent(1);
     
-    function showTabContent(b) {
+    let showTabContent = b => {
         if (tabContent[b].classList.contains('hide')) {
             tabContent[b].classList.remove('hide');
             tabContent[b].classList.add('show');
         }
     }
     
-    info.addEventListener('click', (event) => {
-        let target = event.target;
+    info.addEventListener('click', e => {
+        let target = e.target;
     
         if (target && target.classList.contains('info-header-tab')) {
             for (let i = 0; i < tab.length; i++) {
@@ -747,7 +700,7 @@ function timer() {
     let deadline = '2019-06-10';
 
     // Определяем сколько осталось часов, минут и секнд до даты
-    function getTimeRemaining(endtime) {
+    let getTimeRemaining = endtime => {
         let t = Date.parse(endtime) - Date.parse(new Date());
 
         if (t > 0) {
@@ -775,15 +728,14 @@ function timer() {
     }
 
     // Задаем часы
-    function setClock(id, endtime) {
+    let setClock = (id, endtime) => {
         let timer = document.getElementById(id),
             days = timer.querySelector('.days'),
             hours = timer.querySelector('.hours'),
             minutes = timer.querySelector('.minutes'),
-            seconds = timer.querySelector('.seconds'),
-            timeInterval = setInterval(updateClock, 1000);
+            seconds = timer.querySelector('.seconds');
 
-        function updateClock() {
+        let updateClock = () => {
             let t = getTimeRemaining(endtime);
 
             for (let key in t) {
@@ -812,6 +764,8 @@ function timer() {
                 clearInterval(timeInterval);
             }
         }
+
+        let timeInterval = setInterval(updateClock, 1000);
     }
 
     setClock('timer', deadline);
@@ -849,7 +803,6 @@ window.addEventListener('DOMContentLoaded', () => {
     tabs();
     timer();
     input();
-
 });
 
 /***/ })

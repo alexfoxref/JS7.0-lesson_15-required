@@ -1,26 +1,20 @@
 // Плавная прокрутка пунктов меню
 
 function lightScroll() {
-    let menuPanel = document.querySelector('ul'),
-        menuItems = document.querySelectorAll('li > a'),
-        overlay = document.querySelector('.overlay');
+    let menuItems = document.querySelectorAll('li > a');
 
-    menuItems.forEach((item) => {
+    menuItems.forEach(item => {
         item.classList.add('menu-item');
     });
 
-    menuPanel.addEventListener('click', (event) => {
-        event.preventDefault();
-        //чтобы прокрутка не работала при открытом модальном окне
-        if (!overlay.classList.contains('activeOverlay')) {
+    document.body.addEventListener('click', e => {
+        if (e.target && e.target.classList.contains('menu-item')) {                
+            e.preventDefault();
 
-            if (event.target && event.target.classList.contains('menu-item')) {                
-                
-                document.querySelector(event.target.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
+            document.querySelector(e.target.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
         }
     });
 }

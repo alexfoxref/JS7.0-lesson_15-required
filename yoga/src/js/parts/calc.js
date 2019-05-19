@@ -11,27 +11,52 @@ function calc() {
 
     totalValue.innerHTML = 0;
 
-    persons.addEventListener('change', function() {
-        personsSum = +this.value;
-
-        total = (daysSum + personsSum) * 4000;
-
-        if (restDays.value == '' || persons.value == '') {
-            totalValue.innerHTML = 0;
-        } else {
-            let totalStr = total * place.options[place.selectedIndex].value + '';
-
-            animatedNum(totalStr, totalValue);
+ function getOneNum(str) {
+            return new Promise(resolve => {
+                if (index < str.length) {
+                    if (count <= +str[index]) {
+                        resolve(str);
+                    } else {
+                        index++;
+                        (index < str.length) ? count = 0 : count = ''
+                        resolve(str);
+                    }
+                } else {
+                    index = 0;
+                    count = 0;
+                }
+            })
         }
-    });
 
     // анимация цифр
-
-    function animatedNum(str, element) {
+    let animatedNum = (str, element) => {
         let index = 0,
             count = 0;
 
-        function getNum(str) {
+        let getOneNum = str => {
+            return new Promise(resolve => {
+                if (index < str.length) {
+                    if (count <= +str[index]) {
+                        resolve(str);
+                    } else {
+                        index++;
+                        (index < str.length) ? count = 0 : count = ''
+                        resolve(str);
+                    }
+                } else {
+                    index = 0;
+                    count = 0;
+                }
+            })
+        }
+
+        let waitTimeout = ms => {
+            return new Promise(resolve => {
+                setTimeout(resolve, ms);
+            })
+        }
+
+        let getNum = (str) => {
             getOneNum(str)
                 .then((res) => {
                     if (index == 0) {
@@ -47,69 +72,41 @@ function calc() {
                             getNum(str)
                         })
                 })
-                // .catch((err) => console.log(err))
-        }
-
-        function getOneNum(str) {
-            return new Promise((resolve, reject) => {
-                if (index < str.length) {
-                    if (count <= +str[index]) {
-                        resolve(str);
-                    } else {
-                        index++;
-                        (index < str.length) ? count = 0 : count = ''
-                        resolve(str);
-                    }
-                } else {
-                    // reject('конец числа');
-                    index = 0;
-                    count = 0;
-                }
-            })
-        }
-
-        function waitTimeout(ms) {
-            return new Promise(resolve => {
-                setTimeout(resolve, ms);
-            })
         }
 
         getNum(str);
     }
 
-    restDays.addEventListener('change', function() {
-        daysSum = +this.value;
+    document.body.addEventListener('change', e => {
+        if (e.target && e.target.classList.contains('counter-block-input')) {
+            daysSum = +e.target.value;
 
-        total = (daysSum + personsSum) * 4000;
+            total = (daysSum + personsSum) * 4000;
 
-        if (persons.value == '' || restDays.value == '') {
-            totalValue.innerHTML = 0;
-        } else {
-            let totalStr = total * place.options[place.selectedIndex].value + '';
-            
-            animatedNum(totalStr, totalValue);
-
+            if (persons.value == '' || restDays.value == '') {
+                totalValue.innerHTML = 0;
+            } else {
+                let totalStr = total * place.options[place.selectedIndex].value + '';
+                
+                animatedNum(totalStr, totalValue);
+            }
         }
-    });
-
-    place.addEventListener('change', function() {
-        if (restDays.value == '' || persons.value == '') {
-            totalValue.innerHTML = 0;
-        } else {
-            let a = total,
-                totalStr = a * this.options[this.selectedIndex].value + '';
-
-            animatedNum(totalStr, totalValue);
-
-        }
-    });
-
-    persons.addEventListener('input', function() {
-        this.value = this.value.replace(/[\D]|^0/g, '');
-    });
+        if (e.target && e.target == place) {
+            if (restDays.value == '' || persons.value == '') {
+                totalValue.innerHTML = 0;
+            } else {
+                let a = total,
+                    totalStr = a * e.target.options[e.target.selectedIndex].value + '';
     
-    restDays.addEventListener('input', function() {
-        this.value = this.value.replace(/[\D]|^0/g, '');
+                animatedNum(totalStr, totalValue);
+            }
+        }
+    });
+
+    document.body.addEventListener('input', e => {
+        if (e.target && e.target.classList.contains('counter-block-input')) {
+            e.target.value = e.target.value.replace(/[\D]|^0/g, '');
+        }
     });
 }
 

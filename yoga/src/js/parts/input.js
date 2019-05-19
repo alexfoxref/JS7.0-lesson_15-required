@@ -3,17 +3,17 @@
 function input() {
     let siteInputs = document.querySelectorAll('input[name="phone"]');
 
-    document.addEventListener('input', (event) => {
+    document.body.addEventListener('input', e => {
         siteInputs.forEach((item) => {
-            if (event.target && event.target == item) {
+            if (e.target && e.target == item) {
                 //формируем ввод
                 item.value = '+' + item.value
                     .replace(/[^\d]/g, ``)
                     .replace(/\d{12,}/, `${item.value.replace(/[^\d]/g, ``).slice(0, 11)}`);
                 //удаляем плюс
-                item.addEventListener('keydown', (event) => {
-                    if (event.keyCode == 8 && item.value == '+') {
-                        event.preventDefault();
+                item.addEventListener('keydown', e => {
+                    if (e.keyCode == 8 && item.value == '+') {
+                        e.preventDefault();
                         item.value = '';
                     }
                 });

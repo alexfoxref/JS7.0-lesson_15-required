@@ -263,9 +263,9 @@ header ul li:before {
   font-weight: 300;
   cursor: pointer;
 }
-.content .info-tabcontent .description-btn:hover {
+/* .content .info-tabcontent .description-btn:hover {
   box-shadow: 0px 0px 5px #c78030;
-}
+} */
 .content .info-tabcontent .photo {
   display: -webkit-box;
   display: -webkit-flex;
@@ -532,9 +532,9 @@ header ul li:before {
   color: #c78030;
   cursor: pointer;
 }
-.content .more:hover {
+/* .content .more:hover {
   box-shadow: 0 0 10px #c78030;
-}
+} */
 .content .contact {
   width: 86%;
   height: 400px;

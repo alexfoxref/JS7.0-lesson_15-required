@@ -19,5 +19,4 @@ window.addEventListener('DOMContentLoaded', () => {
     tabs();
     timer();
     input();
-
 });

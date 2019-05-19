@@ -8,13 +8,11 @@ function form() {
         statusMessage = document.createElement('div'),
         overlayForm = document.querySelector('.overlay-form'),
         popupFormTitle = document.querySelector('.popup-form-title'),
-        overlay = document.querySelector('.overlay'),
-        popup = document.querySelector('.overlay > *'),
         popupFormStatus = document.querySelector('.popup-form-status');
 
     statusMessage.classList.add('status-img');
 
-    function sendForm(form, input) {
+    let sendForm = (form, input) => {
         //объект стандартных интерпретаций ответа сервера
         let message = {
             loading: 'Загрузка...',
@@ -27,8 +25,8 @@ function form() {
             failureImgBig: `<img src="src/img/delete-button.svg" width="200" height="200" alt="Что-то пошло не так...">`
         };
 
-        form.addEventListener('submit', (event) => {
-            event.preventDefault();
+        form.addEventListener('submit', e => {
+            e.preventDefault();
             //добавляем картинку в форму и удаляем класс анимации всплывающего окна формы
             form.appendChild(statusMessage);
             overlayForm.classList.remove('fade-form');
@@ -41,8 +39,24 @@ function form() {
                 statusMessage.style.left = '54%';
             }
 
+            //загрузка
+            let loadingPost = () => {
+                //класс для условия остановки анимации
+                statusMessage.classList.add('loading');
+                statusMessage.innerHTML = message.loadingImg;
+                //js анимация вращения картинки
+                let count = 0,
+                    loadingAnimation = setInterval(() => {
+                        statusMessage.style.transform = `rotate(${++count}deg)`;
+                        if (!statusMessage.classList.contains('loading')) {
+                            statusMessage.style.transform = `rotate(0deg)`;
+                            clearInterval(loadingAnimation);
+                        }
+                    }, 10);
+            }
+
             //формируем запрос в формате json
-            function postData(data) {
+            let postData = (data) => {
                 return new Promise((resolve, reject) => {
                     let request = new XMLHttpRequest();
 
@@ -55,9 +69,7 @@ function form() {
                     });
                     //слушатель на изменение состояния запроса
                     request.addEventListener('readystatechange', () => {
-                        // так не работает
-                        // if (request.readyState < 4) {
-                        //     resolve('loading')} else 
+        
                         if (request.readyState === 4) {
                             if (request.status == 200) {
                                 resolve('success');
@@ -78,57 +90,48 @@ function form() {
                 obj[key] = value;
             });
             let json = JSON.stringify(obj);
-            
-            //загрузка
-            function loadingPost() {
-                //класс для условия остановки анимации
-                statusMessage.classList.add('loading');
-                statusMessage.innerHTML = message.loadingImg;
-                //js анимация вращения картинки
-                let count = 0,
-                    loadingAnimation = setInterval(() => {
-                        statusMessage.style.transform = `rotate(${++count}deg)`;
-                        if (!statusMessage.classList.contains('loading')) {
-                            statusMessage.style.transform = `rotate(0deg)`;
-                            clearInterval(loadingAnimation);
-                        }
-                    }, 10);
-            }
 
             //функция действий при успехе и при неуспехе
-            function requestEvent(st) {
+            let requestEvent = (st) => {
+                let bindModal = (displayStatus, overlayMethod, popupMethod, overflowStatus) => {
+                    overlayForm.style.display = displayStatus;
+                    overlayForm.classList[overlayMethod]('fade-form');
+                    popupFormStatus[popupMethod](image);
+                    document.body.style.overflow = overflowStatus;
+                }
+
                 //класс для условия остановки анимации
                 statusMessage.classList.remove('loading');
                 //вставляем нужную картинку
                 statusMessage.innerHTML = message[`${st}Img`];
                 //модальное окно с нужной надписью и картинкой
-                overlayForm.style.display = 'block';
-                overlayForm.classList.add('fade-form');
                 popupFormTitle.textContent = message[`${st}`];
                 let image = document.createElement('div');
                 image.innerHTML = message[`${st}ImgBig`];
                 image.classList.add('popup-form-img');
-                popupFormStatus.appendChild(image);
+                bindModal('block', 'add', 'appendChild', 'hidden');
                 //закрываем модальное окно по клику в любое место и убираем обработчик событий
-                function removeListener(event) {
-                    overlayForm.style.display = 'none';
-                    overlayForm.classList.remove('fade-form');
-                    popupFormStatus.removeChild(image);
+                let removeListener = () => {
+                    bindModal('none', 'remove', 'removeChild', '');
                     document.body.removeEventListener('click', removeListener);
+                    if (form.contains(statusMessage)) {
+                        statusMessage.innerHTML = '';
+                        form.removeChild(statusMessage);
+                    }
                 }
 
                 document.body.addEventListener('click', removeListener);
             }
 
             //setTimeout
-            function waitTimeout(ms) {
+            let waitTimeout = (ms) => {
                 return new Promise(resolve => {
                     setTimeout(resolve, ms)
                 })
             }
 
             //окончание запроса
-            function endPost() {
+            let endPost = () => {
                 for (let i = 0; i < input.length; i++) {
                     input[i].value = '';
                     input[i].addEventListener('input', () => {
@@ -141,18 +144,14 @@ function form() {
             }
 
             postData(json)
-                    // так не работает
-                    // .then(() => {
-                    //     loadingPost()
-                    // })
                     .then((succ) => {
                         waitTimeout(1000)
-                            .then(() => {requestEvent('success')})
+                            .then(() => {requestEvent(succ)})
                     })
                     .catch((err) => {
                         waitTimeout(3000)
                             .then(() => {
-                                requestEvent('failure');
+                                requestEvent(err);
                                 console.error('Сервер не отвечает');
                             })
                     })
@@ -164,18 +163,6 @@ function form() {
 
     sendForm(form, input);
     sendForm(contactForm, contactInput);
-
-    // скрываем модальное окно при нажатии в область вне окна
-    overlay.addEventListener('click', (event) => {
-        if (event.target && !popup.contains(event.target)) {
-            
-            //удаляем сообщение блока ajax
-            if (form.contains(statusMessage)) {
-                statusMessage.innerHTML = '';
-                form.removeChild(statusMessage);
-            }
-        }
-    });
 }
 
 module.exports = form;

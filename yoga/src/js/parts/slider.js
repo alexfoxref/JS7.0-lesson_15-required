@@ -9,11 +9,7 @@ function slider() {
         dots = document.querySelectorAll('.dot'),
         wrap = document.querySelector('.wrap');
 
-    wrap.style.height = slides[slideIndex - 1].getBoundingClientRect().height;
-
-    showSlides(slideIndex);
-
-    function showSlides(n) {
+    let showSlides = n => {
         if (n > slides.length) {
             slideIndex = 1;
         }
@@ -31,29 +27,29 @@ function slider() {
         dots[slideIndex - 1].classList.add('dot-active');
     }
 
-    function plusSlides(n) {
+    let plusSlides = n => {
         showSlides(slideIndex += n);
     }
 
-    function currentSlide(n) {
+    let currentSlide = n => {
         showSlides(slideIndex = n);
     }
 
-    prev.addEventListener('click', () => {
-        plusSlides(-1);
-    });
-
-    next.addEventListener('click', () => {
-        plusSlides(1);
-    });
-
-    dotsWrap.addEventListener('click', event => {
+    document.body.addEventListener('click', e => {
+        if (e.target && e.target.classList.contains('prev') || e.target.classList.contains('arrow-left')) {
+            plusSlides(-1);
+        };
+        if (e.target && e.target.classList.contains('next') || e.target.classList.contains('arrow-right')) {
+            plusSlides(1);
+        };
         dots.forEach((item, index) => {
-            if (event.target && event.target == item) {
+            if (e.target && e.target == item) {
                 currentSlide(index + 1);
             }
         });
     });
+
+    showSlides(slideIndex);
 }
 
 module.exports = slider;

@@ -5,7 +5,7 @@ function timer() {
     let deadline = '2019-06-10';
 
     // Определяем сколько осталось часов, минут и секнд до даты
-    function getTimeRemaining(endtime) {
+    let getTimeRemaining = endtime => {
         let t = Date.parse(endtime) - Date.parse(new Date());
 
         if (t > 0) {
@@ -33,15 +33,14 @@ function timer() {
     }
 
     // Задаем часы
-    function setClock(id, endtime) {
+    let setClock = (id, endtime) => {
         let timer = document.getElementById(id),
             days = timer.querySelector('.days'),
             hours = timer.querySelector('.hours'),
             minutes = timer.querySelector('.minutes'),
-            seconds = timer.querySelector('.seconds'),
-            timeInterval = setInterval(updateClock, 1000);
+            seconds = timer.querySelector('.seconds');
 
-        function updateClock() {
+        let updateClock = () => {
             let t = getTimeRemaining(endtime);
 
             for (let key in t) {
@@ -70,6 +69,8 @@ function timer() {
                 clearInterval(timeInterval);
             }
         }
+
+        let timeInterval = setInterval(updateClock, 1000);
     }
 
     setClock('timer', deadline);

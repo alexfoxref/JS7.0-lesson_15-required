@@ -107,7 +107,7 @@ function form() {
                 popupFormTitle.textContent = message[`${st}`];
                 let image = document.createElement('div');
                 image.innerHTML = message[`${st}ImgBig`];
-                image.classList.add('popup-form-img')
+                image.classList.add('popup-form-img');
                 popupFormStatus.appendChild(image);
                 //закрываем модальное окно по клику в любое место и убираем обработчик событий
                 function removeListener(event) {

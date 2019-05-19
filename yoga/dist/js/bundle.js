@@ -328,7 +328,7 @@ function form() {
                 popupFormTitle.textContent = message[`${st}`];
                 let image = document.createElement('div');
                 image.innerHTML = message[`${st}ImgBig`];
-                image.classList.add('popup-form-img')
+                image.classList.add('popup-form-img');
                 popupFormStatus.appendChild(image);
                 //закрываем модальное окно по клику в любое место и убираем обработчик событий
                 function removeListener(event) {
@@ -415,16 +415,36 @@ module.exports = form;
 function input() {
     let siteInputs = document.querySelectorAll('input[name="phone"]');
 
-    for (let i = 0; i < siteInputs.length; i++) {
-        siteInputs[i].addEventListener('input', () => {
-            let str = siteInputs[i].value;
-            while (/[^\+\d]/.test(str)) {
-                str = str.replace(/[^\+\d]/g, '');
-                siteInputs[i].value = str;
+    document.addEventListener('input', (event) => {
+        siteInputs.forEach((item) => {
+            if (event.target && event.target == item) {
+                //формируем ввод
+                item.value = '+' + item.value
+                    .replace(/[^\d]/g, ``)
+                    .replace(/\d{12,}/, `${item.value.replace(/[^\d]/g, ``).slice(0, 11)}`);
+                //удаляем плюс
+                item.addEventListener('keydown', (event) => {
+                    if (event.keyCode == 8 && item.value == '+') {
+                        event.preventDefault();
+                        item.value = '';
+                    }
+                });
+                //выводим рекомендацию ...
+                if (item.value.length != 12) {
+                    item.placeholder = 'Введите 11 цифр телефона';
+                } else {
+                    item.placeholder = 'Ваш телефон';
+                }
+                // ... при потере фокуса инпута
+                item.addEventListener('blur', () => {
+                    if (item.value.length > 0 && item.value.length < 12) {
+                        item.value = '';
+                    }
+                }); 
             }
         });
-    }
-}
+    });    
+}       
 
 module.exports = input;
 
@@ -450,18 +470,15 @@ function lightScroll() {
 
     menuPanel.addEventListener('click', (event) => {
         event.preventDefault();
+        //чтобы прокрутка не работала при открытом модальном окне
         if (!overlay.classList.contains('activeOverlay')) {
-            let target = event.target;
 
-            if (target && target.classList.contains('menu-item')) {                
-                for (let i = 0; i < menuItems.length; i++) {
-                    if (target == menuItems[i]) {
-                        document.querySelector(menuItems[i].getAttribute('href')).scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
-                    }
-                }
+            if (event.target && event.target.classList.contains('menu-item')) {                
+                
+                document.querySelector(event.target.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
             }
         }
     });
@@ -486,31 +503,33 @@ function modal() {
         popup = document.querySelector('.overlay > *'),
         tabBtns = document.querySelectorAll('.description-btn'),
         fade = document.querySelectorAll('.fade')[8]
-        overlay = document.querySelector('.overlay'),
-        statusMessage = document.createElement('div');
+        overlay = document.querySelector('.overlay');
 
     document.body.addEventListener('click', (event) => {
         for (let i = 0; i < tabBtns.length; i++) {
             
             if (event.target && (event.target == more || event.target == tabBtns[i])) {
                 event.preventDefault();
+                //удаляем любую анимацию по-умолчанию
                 more.classList.remove('more-splash');
                 tabBtns[i].classList.remove('more-splash');
                 fade.classList.remove('fade');
 
                 if (/Msie|Edge/i.test(navigator.userAgent)) {
+                    //добавляем css анимацию
                     more.classList.add('more-splash');
                     tabBtns[i].classList.add('more-splash');
                     fade.classList.add('fade');
                 } else if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Kindle|Silk|Opera Mini/i.test(navigator.userAgent)) {
-                    //js анимация
+                    //добавляем js анимацию
+                    //начальное положение
                     overlay.style.top = '50%';
                     overlay.style.left = '50%';
                     overlay.style.width = '0%';
                     overlay.style.height = '0%';
                     popup.style.left = '-50%';
+                    
                     let shadow = 10;
-
                     if (event.target == more) {
                         more.style.boxShadow = `0 0 ${shadow}px #c78030`;
                     }
@@ -518,6 +537,7 @@ function modal() {
                         tabBtns[i].style.boxShadow = `0 0 ${shadow}px #c78030`;
                     }
 
+                    //js анимация
                     function overlayAnimation (pos1, pos2, int) {
                         let id = setInterval(frameOverlay, int);
 
@@ -559,6 +579,7 @@ function modal() {
                             }
                         }
                     }
+
                     if (event.target == more) {
                         overlayAnimation(3, 44, 20);
                     }
@@ -571,6 +592,7 @@ function modal() {
 
                 overlay.style.display = 'block';
                 document.body.style.overflow = 'hidden';
+                //класс для запрещения прокрутки при открытом модальном окне
                 overlay.classList.add('activeOverlay');
             }
         }
@@ -578,36 +600,14 @@ function modal() {
 
     // скрываем при нажатии на крестик
     close.addEventListener('click', () => {
-    overlay.style.display = 'none';
-    more.classList.remove('more-splash');
-    for (let i = 0; i < tabBtns.length; i++) {
-        tabBtns[i].classList.remove('more-splash');
-    }
-    document.body.style.overflow = '';
-    overlay.classList.remove('activeOverlay');
-    //удаляем сообщение блока ajax
-    if (form.contains(statusMessage)) {
-        statusMessage.innerHTML = '';
-        form.removeChild(statusMessage);
-    }
-
-    });
-    // скрываем при нажатии в область вне модального окна
-    overlay.addEventListener('click', (event) => {
-        if (event.target && !popup.contains(event.target)) {
-            overlay.style.display = 'none';
-            more.classList.remove('more-splash');
-            for (let i = 0; i < tabBtns.length; i++) {
-                tabBtns[i].classList.remove('more-splash');
-            }
-            document.body.style.overflow = '';
-            overlay.classList.remove('activeOverlay');
-            //удаляем сообщение блока ajax
-            if (form.contains(statusMessage)) {
-                statusMessage.innerHTML = '';
-                form.removeChild(statusMessage);
-            }
+        overlay.style.display = 'none';
+        more.classList.remove('more-splash');
+        for (let i = 0; i < tabBtns.length; i++) {
+            tabBtns[i].classList.remove('more-splash');
         }
+        document.body.style.overflow = '';
+        overlay.classList.remove('activeOverlay');
+        popup.querySelector('input').placeholder = 'Ваш телефон';
     });
 }
 

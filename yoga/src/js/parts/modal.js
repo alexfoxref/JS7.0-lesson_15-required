@@ -6,31 +6,33 @@ function modal() {
         popup = document.querySelector('.overlay > *'),
         tabBtns = document.querySelectorAll('.description-btn'),
         fade = document.querySelectorAll('.fade')[8]
-        overlay = document.querySelector('.overlay'),
-        statusMessage = document.createElement('div');
+        overlay = document.querySelector('.overlay');
 
     document.body.addEventListener('click', (event) => {
         for (let i = 0; i < tabBtns.length; i++) {
             
             if (event.target && (event.target == more || event.target == tabBtns[i])) {
                 event.preventDefault();
+                //удаляем любую анимацию по-умолчанию
                 more.classList.remove('more-splash');
                 tabBtns[i].classList.remove('more-splash');
                 fade.classList.remove('fade');
 
                 if (/Msie|Edge/i.test(navigator.userAgent)) {
+                    //добавляем css анимацию
                     more.classList.add('more-splash');
                     tabBtns[i].classList.add('more-splash');
                     fade.classList.add('fade');
                 } else if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Kindle|Silk|Opera Mini/i.test(navigator.userAgent)) {
-                    //js анимация
+                    //добавляем js анимацию
+                    //начальное положение
                     overlay.style.top = '50%';
                     overlay.style.left = '50%';
                     overlay.style.width = '0%';
                     overlay.style.height = '0%';
                     popup.style.left = '-50%';
+                    
                     let shadow = 10;
-
                     if (event.target == more) {
                         more.style.boxShadow = `0 0 ${shadow}px #c78030`;
                     }
@@ -38,6 +40,7 @@ function modal() {
                         tabBtns[i].style.boxShadow = `0 0 ${shadow}px #c78030`;
                     }
 
+                    //js анимация
                     function overlayAnimation (pos1, pos2, int) {
                         let id = setInterval(frameOverlay, int);
 
@@ -79,6 +82,7 @@ function modal() {
                             }
                         }
                     }
+
                     if (event.target == more) {
                         overlayAnimation(3, 44, 20);
                     }
@@ -91,6 +95,7 @@ function modal() {
 
                 overlay.style.display = 'block';
                 document.body.style.overflow = 'hidden';
+                //класс для запрещения прокрутки при открытом модальном окне
                 overlay.classList.add('activeOverlay');
             }
         }
@@ -98,36 +103,14 @@ function modal() {
 
     // скрываем при нажатии на крестик
     close.addEventListener('click', () => {
-    overlay.style.display = 'none';
-    more.classList.remove('more-splash');
-    for (let i = 0; i < tabBtns.length; i++) {
-        tabBtns[i].classList.remove('more-splash');
-    }
-    document.body.style.overflow = '';
-    overlay.classList.remove('activeOverlay');
-    //удаляем сообщение блока ajax
-    if (form.contains(statusMessage)) {
-        statusMessage.innerHTML = '';
-        form.removeChild(statusMessage);
-    }
-
-    });
-    // скрываем при нажатии в область вне модального окна
-    overlay.addEventListener('click', (event) => {
-        if (event.target && !popup.contains(event.target)) {
-            overlay.style.display = 'none';
-            more.classList.remove('more-splash');
-            for (let i = 0; i < tabBtns.length; i++) {
-                tabBtns[i].classList.remove('more-splash');
-            }
-            document.body.style.overflow = '';
-            overlay.classList.remove('activeOverlay');
-            //удаляем сообщение блока ajax
-            if (form.contains(statusMessage)) {
-                statusMessage.innerHTML = '';
-                form.removeChild(statusMessage);
-            }
+        overlay.style.display = 'none';
+        more.classList.remove('more-splash');
+        for (let i = 0; i < tabBtns.length; i++) {
+            tabBtns[i].classList.remove('more-splash');
         }
+        document.body.style.overflow = '';
+        overlay.classList.remove('activeOverlay');
+        popup.querySelector('input').placeholder = 'Ваш телефон';
     });
 }
 

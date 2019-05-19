@@ -11,18 +11,15 @@ function lightScroll() {
 
     menuPanel.addEventListener('click', (event) => {
         event.preventDefault();
+        //чтобы прокрутка не работала при открытом модальном окне
         if (!overlay.classList.contains('activeOverlay')) {
-            let target = event.target;
 
-            if (target && target.classList.contains('menu-item')) {                
-                for (let i = 0; i < menuItems.length; i++) {
-                    if (target == menuItems[i]) {
-                        document.querySelector(menuItems[i].getAttribute('href')).scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
-                    }
-                }
+            if (event.target && event.target.classList.contains('menu-item')) {                
+                
+                document.querySelector(event.target.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
             }
         }
     });

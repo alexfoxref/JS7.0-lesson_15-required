@@ -36,7 +36,7 @@ function modal() {
             bindModal('block', 'hidden', e.target);
             fade.classList.remove('fade');
 
-            if (/Msie|Edge/i.test(navigator.userAgent)) {
+            if (/Msie|Edge|Windows NT/i.test(navigator.userAgent)) {
                 //добавляем css анимацию
                 e.target.classList.add('more-splash');
                 fade.classList.add('fade');
